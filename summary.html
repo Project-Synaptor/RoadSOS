@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoadSOS — Implementation Summary</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    h1 { color: #58a6ff; margin-bottom: 0.5rem; font-size: 1.8rem; }
+    h2 { color: #58a6ff; margin: 1.5rem 0 0.8rem; font-size: 1.3rem; border-bottom: 1px solid #30363d; padding-bottom: 0.4rem; }
+    h3 { color: #7ee787; margin: 1rem 0 0.5rem; font-size: 1.05rem; }
+    .subtitle { color: #8b949e; margin-bottom: 2rem; }
+    .status-badge {
+      display: inline-block;
+      background: #238636;
+      color: #fff;
+      padding: 0.3rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    .stats {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      min-width: 120px;
+    }
+    .stat-box .num { font-size: 2rem; font-weight: bold; color: #58a6ff; }
+    .stat-box .label { color: #8b949e; font-size: 0.85rem; }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .file-list { list-style: none; padding: 0; }
+    .file-list li {
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #21262d;
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+    .file-list li:last-child { border-bottom: none; }
+    .file-path {
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      color: #7ee787;
+      font-size: 0.85rem;
+    }
+    .file-action {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .action-new { background: #238636; color: #fff; }
+    .action-modified { background: #9e6a03; color: #fff; }
+    .action-deleted { background: #da3633; color: #fff; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    th, td { text-align: left; padding: 0.5rem 0.8rem; border-bottom: 1px solid #21262d; font-size: 0.9rem; }
+    th { color: #8b949e; font-size: 0.75rem; text-transform: uppercase; }
+    .test-pass { color: #7ee787; font-weight: 600; }
+    code {
+      background: #21262d;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 0.85rem;
+    }
+    .sample-msg {
+      background: #1c2129;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      color: #e6edf3;
+      margin-top: 0.5rem;
+    }
+    .timestamp { color: #8b949e; font-size: 0.8rem; margin-top: 2rem; text-align: center; }
+  </style>
+</head>
+<body>
+
+<h1>RoadSOS — Implementation Summary</h1>
+<p class="subtitle">Emergency Data & Maps Upgrade — completed 2026-05-13</p>
+<div class="status-badge">ALL 42 TASKS COMPLETE</div>
+
+<div class="stats">
+  <div class="stat-box"><div class="num">42</div><div class="label">Tasks</div></div>
+  <div class="stat-box"><div class="num">28</div><div class="label">Data Records</div></div>
+  <div class="stat-box"><div class="num">38</div><div class="label">Tests Passing</div></div>
+  <div class="stat-box"><div class="num">8</div><div class="label">Files Changed</div></div>
+</div>
+
+<h2>What Changed</h2>
+
+<div class="card">
+  <h3>Problem</h3>
+  <p>The maps service relied on external APIs (OpenStreetMap Overpass) for finding emergency services. This was slow, unreliable, and had no trauma capability data. There was no Golden Hour tracking in dispatch messages.</p>
+</div>
+
+<div class="card">
+  <h3>Solution</h3>
+  <p>Replaced external API calls with a local JSON data file containing 28 verified emergency service records (8 hospitals + 3 police + 3 ambulance per city) for Bhubaneswar and Chennai. Added trauma level classification, Golden Hour countdown, and formatted dispatch messages.</p>
+</div>
+
+<h2>Files Changed</h2>
+
+<ul class="file-list">
+  <li>
+    <span class="file-action action-new">NEW</span>
+    <span class="file-path">data/hospitals.json</span>
+    — 28 records: real hospitals, police stations, ambulance contacts for Bhubaneswar & Chennai
+  </li>
+  <li>
+    <span class="file-action action-modified">MODIFIED</span>
+    <span class="file-path">app/services/maps.py</span>
+    — Rewrote to use local JSON + haversine. Removed Overpass API. Geoapify as commented alternative.
+  </li>
+  <li>
+    <span class="file-action action-modified">MODIFIED</span>
+    <span class="file-path">app/services/triage.py</span>
+    — Added format_golden_hour(), format_dispatch_message(). Updated dispatch flow.
+  </li>
+  <li>
+    <span class="file-action action-modified">MODIFIED</span>
+    <span class="file-path">app/models/schemas.py</span>
+    — Added trauma_level, is_24x7 to EmergencyService. Added triage_started_at to SessionState.
+  </li>
+  <li>
+    <span class="file-action action-modified">MODIFIED</span>
+    <span class="file-path">app/config.py</span>
+    — Added hospital_data_path setting.
+  </li>
+  <li>
+    <span class="file-action action-modified">MODIFIED</span>
+    <span class="file-path">prompts/triage_system.txt</span>
+    — Updated STATE 4 (DISPATCH) instructions for new format.
+  </li>
+  <li>
+    <span class="file-action action-new">NEW</span>
+    <span class="file-path">tests/test_maps.py</span>
+    — 24 tests for data loading, haversine, city detection, trauma classification, service lookup
+  </li>
+  <li>
+    <span class="file-action action-new">NEW</span>
+    <span class="file-path">tests/test_triage.py</span>
+    — 14 tests for golden hour countdown and dispatch message formatting
+  </li>
+</ul>
+
+<h2>Data Summary</h2>
+
+<table>
+  <thead>
+    <tr><th>City</th><th>Hospitals</th><th>Police</th><th>Ambulance</th><th>Total</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Bhubaneswar</td><td>8</td><td>3</td><td>3</td><td>14</td></tr>
+    <tr><td>Chennai</td><td>8</td><td>3</td><td>3</td><td>14</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>16</strong></td><td><strong>6</strong></td><td><strong>6</strong></td><td><strong>28</strong></td></tr>
+  </tbody>
+</table>
+
+<h3>Bhubaneswar Hospitals</h3>
+<table>
+  <thead><tr><th>Hospital</th><th>Type</th><th>Trauma</th><th>ICU</th><th>Blood Bank</th><th>24x7</th></tr></thead>
+  <tbody>
+    <tr><td>AIIMS Bhubaneswar</td><td>Government</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>KIMS (KIIT Road)</td><td>Private</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>SUM Hospital</td><td>Private</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Apollo Hospitals</td><td>Private</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Capital Hospital</td><td>Government</td><td>Level 3</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Kalinga Hospital</td><td>Private</td><td>Level 2</td><td>Yes</td><td>No</td><td>Yes</td></tr>
+    <tr><td>SCB Medical College (Cuttack)</td><td>Government</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Hi-Tech Medical College</td><td>Private</td><td>Level 3</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+  </tbody>
+</table>
+
+<h3>Chennai Hospitals</h3>
+<table>
+  <thead><tr><th>Hospital</th><th>Type</th><th>Trauma</th><th>ICU</th><th>Blood Bank</th><th>24x7</th></tr></thead>
+  <tbody>
+    <tr><td>Apollo Speciality Hospital</td><td>Private</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>MIOT International</td><td>Private</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Stanley Medical College</td><td>Government</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>RGGGH</td><td>Government</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>SIMS Hospital</td><td>Private</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Sri Ramachandra Medical Centre</td><td>Private</td><td>Level 1</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Government Royapettah Hospital</td><td>Government</td><td>Level 3</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Frontier Lifeline Hospital</td><td>Private</td><td>Level 3</td><td>Yes</td><td>No</td><td>Yes</td></tr>
+  </tbody>
+</table>
+
+<h2>Test Results</h2>
+
+<table>
+  <thead><tr><th>Test File</th><th>Tests</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>tests/test_maps.py</td><td>24</td><td class="test-pass">24 PASSED</td></tr>
+    <tr><td>tests/test_triage.py</td><td>14</td><td class="test-pass">14 PASSED</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>38</strong></td><td class="test-pass"><strong>38 PASSED</strong></td></tr>
+  </tbody>
+</table>
+
+<h2>Sample Dispatch Message</h2>
+<p>What a victim would see after triage is complete:</p>
+
+<div class="sample-msg">⏱️ GOLDEN HOUR: ~45 min remaining
+
+🆘 Nearest emergency services:
+🏥 AIIMS Bhubaneswar — 1.5 km [TRAUMA CENTRE] 24x7
+   📞 0674-2476700
+🏥 Kalinga Institute of Medical Sciences (KIMS) — 5.8 km [TRAUMA CENTRE] 24x7
+   📞 0674-2725444
+🏥 Institute of Medical Sciences and SUM Hospital — 7.2 km [TRAUMA CENTRE] 24x7
+   📞 0674-2386281
+
+🚑 Ambulance:
+   108 Emergency Ambulance (Bhubaneswar) — 📞 108
+   AIIMS Bhubaneswar Ambulance — 📞 0674-2476701
+
+👮 Police:
+   Khandagiri Police Station — 2.1 km — 📞 0674-2386200
+   Government Railway Police Station Bhubaneswar — 3.4 km — 📞 0674-2534414
+
+📞 National Emergency: 112
+
+👉 Call them RIGHT NOW.
+I'll stay with you and guide you until help arrives.</div>
+
+<h2>Key Functions Added</h2>
+
+<table>
+  <thead><tr><th>Function</th><th>File</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>_load_hospital_data()</code></td><td>maps.py</td><td>Load & cache JSON data file</td></tr>
+    <tr><td><code>get_city_from_coords()</code></td><td>maps.py</td><td>Detect city from lat/lng via bounding box</td></tr>
+    <tr><td><code>classify_trauma_level()</code></td><td>maps.py</td><td>Level 1/2/3 from JSON capability fields</td></tr>
+    <tr><td><code>is_24x7()</code></td><td>maps.py</td><td>Check 24/7 availability</td></tr>
+    <tr><td><code>find_nearest_services()</code></td><td>maps.py</td><td>JSON-based service lookup with haversine</td></tr>
+    <tr><td><code>find_nearest_ambulance()</code></td><td>maps.py</td><td>Ambulance contacts for nearest city</td></tr>
+    <tr><td><code>format_golden_hour()</code></td><td>triage.py</td><td>60-min countdown from triage start</td></tr>
+    <tr><td><code>format_dispatch_message()</code></td><td>triage.py</td><td>Formatted WhatsApp dispatch with all details</td></tr>
+  </tbody>
+</table>
+
+<h2>What Was Removed</h2>
+<ul style="list-style: disc; padding-left: 1.5rem; color: #8b949e;">
+  <li><code>_build_overpass_query()</code> — Overpass QL query builder</li>
+  <li><code>_extract_phone()</code> — OSM tag phone extractor</li>
+  <li>Overpass API dependency from <code>find_nearest_services()</code></li>
+  <li>External API dependency for emergency service lookup</li>
+</ul>
+
+<h2>What Was Preserved</h2>
+<ul style="list-style: disc; padding-left: 1.5rem; color: #8b949e;">
+  <li><code>geocode_location()</code> — Nominatim geocoding (no API key needed)</li>
+  <li><code>_haversine_km()</code> — Distance calculation (bug fixed: 0.0 sort key)</li>
+  <li>Geoapify as commented-out plug-and-play alternative with clear TODO markers</li>
+  <li>All existing Pydantic models (extended with new fields)</li>
+</ul>
+
+<p class="timestamp">Generated 2026-05-13 by RoadSOS task automation</p>
+
+</body>
+</html>

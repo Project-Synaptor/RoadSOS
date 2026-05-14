@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoadSOS — Voice & Multilingual Tasks</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #58a6ff;
+      margin-bottom: 0.5rem;
+      font-size: 1.8rem;
+    }
+    .subtitle {
+      color: #8b949e;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+    .section {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .section-header {
+      background: #21262d;
+      padding: 0.8rem 1.2rem;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-header h2 {
+      color: #58a6ff;
+      font-size: 1.1rem;
+    }
+    .section-header .count {
+      background: #30363d;
+      color: #8b949e;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      text-align: left;
+      padding: 0.6rem 1.2rem;
+      background: #1c2129;
+      color: #8b949e;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid #30363d;
+    }
+    td {
+      padding: 0.5rem 1.2rem;
+      border-bottom: 1px solid #21262d;
+      font-size: 0.9rem;
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: #1c2129; }
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #238636;
+    }
+    .task-desc { color: #c9d1d9; }
+    .file-ref {
+      color: #7ee787;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 0.8rem;
+    }
+    .dep {
+      color: #d2a8ff;
+      font-size: 0.8rem;
+    }
+    .dep::before { content: "Depends on: "; color: #8b949e; }
+    .stats {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+    }
+    .stat-box .num {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #58a6ff;
+    }
+    .stat-box .label {
+      color: #8b949e;
+      font-size: 0.85rem;
+    }
+    .checked .task-desc { text-decoration: line-through; color: #8b949e; }
+  </style>
+</head>
+<body>
+
+<h1>RoadSOS — Voice & Multilingual Integration</h1>
+<p class="subtitle">Voice I/O (STT/TTS) + 8-language support for WhatsApp emergency bot. 34 tasks across 8 sections.</p>
+
+<div class="stats">
+  <div class="stat-box"><div class="num" id="total-count">0</div><div class="label">Total Tasks</div></div>
+  <div class="stat-box"><div class="num" id="done-count">0</div><div class="label">Completed</div></div>
+  <div class="stat-box"><div class="num" id="remaining-count">0</div><div class="label">Remaining</div></div>
+  <div class="stat-box"><div class="num" id="progress-pct">0%</div><div class="label">Progress</div></div>
+</div>
+
+<!-- SECTION 1 -->
+<div class="section" id="section-1">
+  <div class="section-header">
+    <h2>1. Schema & Config Updates</h2>
+    <span class="count" id="count-s1">0/4</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:40px"></th><th>Task</th><th>File</th><th>Depends On</th></tr></thead>
+    <tbody>
+      <tr data-task="1.1"><td><input type="checkbox" checked></td><td class="task-desc">Add <code>language_code: str = "en"</code> and <code>input_modality: str = "text"</code> to <code>SessionState</code></td><td class="file-ref">app/models/schemas.py</td><td class="dep">&mdash;</td></tr>
+      <tr data-task="1.2"><td><input type="checkbox" checked></td><td class="task-desc">Add <code>supported_languages: list[str]</code> to <code>Settings</code> (en, hi, bn, or, ta, te, kn, ml)</td><td class="file-ref">app/config.py</td><td class="dep">&mdash;</td></tr>
+      <tr data-task="1.3"><td><input type="checkbox" checked></td><td class="task-desc">Add <code>SUPPORTED_LANGUAGES</code> to <code>.env.example</code></td><td class="file-ref">.env.example</td><td class="dep">1.2</td></tr>
+      <tr data-task="1.4"><td><input type="checkbox" checked></td><td class="task-desc">Verify existing STT/TTS services work with current MiMo config</td><td class="file-ref">app/services/stt.py, tts.py</td><td class="dep">&mdash;</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section" id="section-2">
+  <div class="section-header">
+    <h2>2. Language Detection Service</h2>
+    <span class="count" id="count-s2">0/5</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:40px"></th><th>Task</th><th>File</th><th>Depends On</th></tr></thead>
+    <tbody>
+      <tr data-task="2.1"><td><input type="checkbox" checked></td><td class="task-desc">Create <code>language.py</code> with <code>detect_language_from_text()</code> &mdash; Unicode script detection (Devanagari, Bengali, Odia, Tamil, Telugu, Kannada, Malayalam)</td><td class="file-ref">app/services/language.py</td><td class="dep">1.2</td></tr>
+      <tr data-task="2.2"><td><input type="checkbox" checked></td><td class="task-desc">Add keyword fallback for romanized text (e.g. "hindi mein", "madad karo", "sahayata")</td><td class="file-ref">app/services/language.py</td><td class="dep">2.1</td></tr>
+      <tr data-task="2.3"><td><input type="checkbox" checked></td><td class="task-desc">Add <code>detect_language_from_stt_response()</code> &mdash; extract language from MiMo STT response, fall back to text detection</td><td class="file-ref">app/services/language.py</td><td class="dep">2.1</td></tr>
+      <tr data-task="2.4"><td><input type="checkbox" checked></td><td class="task-desc">Add explicit language command parsing (e.g. "Hindi mein boliye", "speak in Tamil")</td><td class="file-ref">app/services/language.py</td><td class="dep">2.2</td></tr>
+      <tr data-task="2.5"><td><input type="checkbox" checked></td><td class="task-desc">Add <code>LANGUAGE_CODES</code> constant dict for validation</td><td class="file-ref">app/services/language.py</td><td class="dep">&mdash;</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section" id="section-3">
+  <div class="section-header">
+    <h2>3. STT & TTS Language Support</h2>
+    <span class="count" id="count-s3">0/4</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:40px"></th><th>Task</th><th>File</th><th>Depends On</th></tr></thead>
+    <tbody>
+      <tr data-task="3.1"><td><input type="checkbox" checked></td><td class="task-desc">Update <code>transcribe_audio()</code> to return <code>tuple[str, str]</code> (transcript, language_code)</td><td class="file-ref">app/services/stt.py</td><td class="dep">2.3</td></tr>
+      <tr data-task="3.2"><td><input type="checkbox" checked></td><td class="task-desc">Update <code>synthesize_speech()</code> to accept <code>language_code</code> param and pass to MiMo TTS</td><td class="file-ref">app/services/tts.py</td><td class="dep">&mdash;</td></tr>
+      <tr data-task="3.3"><td><input type="checkbox" checked></td><td class="task-desc">Add TTS fallback: return empty string + TODO for unsupported languages</td><td class="file-ref">app/services/tts.py</td><td class="dep">3.2</td></tr>
+      <tr data-task="3.4"><td><input type="checkbox" checked></td><td class="task-desc">Update webhook caller of <code>transcribe_audio()</code> for new tuple return</td><td class="file-ref">app/routes/webhook.py</td><td class="dep">3.1</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section" id="section-4">
+  <div class="section-header">
+    <h2>4. Twilio Media Upload (TTS Serving)</h2>
+    <span class="count" id="count-s4">0/3</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:40px"></th><th>Task</th><th>File</th><th>Depends On</th></tr></thead>
+    <tbody>
+      <tr data-task="4.1"><td><input type="checkbox" checked></td><td class="task-desc">Create <code>twilio_client.py</code> with <code>upload_media()</code> &mdash; upload audio to Twilio, return media URL</td><td class="file-ref">app/utils/twilio_client.py</td><td class="dep">&mdash;</td></tr>
+      <tr data-task="4.2"><td><input type="checkbox" checked></td><td class="task-desc">Use Twilio REST API <code>POST .../Media</code> &mdash; Twilio-hosted URL, free, no ngrok</td><td class="file-ref">app/utils/twilio_client.py</td><td class="dep">4.1</td></tr>
+      <tr data-task="4.3"><td><input type="checkbox" checked></td><td class="task-desc">Add TODO: production needs public webhook URL (ngrok or hosted)</td><td class="file-ref">app/utils/twilio_client.py</td><td class="dep">4.1</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section" id="section-5">
+  <div class="section-header">
+    <h2>5. Multilingual Triage Prompt</h2>
+    <span class="count" id="count-s5">0/3</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:40px"></th><th>Task</th><th>File</th><th>Depends On</th></tr></thead>
+    <tbody>
+      <tr data-task="5.1"><td><input type="checkbox" checked></td><td class="task-desc">Add <code>[LANGUAGE INSTRUCTION]</code> block to triage system prompt</td><td class="file-ref">prompts/triage_system.txt</td><td class="dep">&mdash;</td></tr>
+      <tr data-task="5.2"><td><input type="checkbox" checked></td><td class="task-desc">Inject <code>[LANGUAGE: {code}]</code> context in <code>_build_messages()</code></td><td class="file-ref">app/services/triage.py</td><td class="dep">5.1</td></tr>
+      <tr data-task="5.3"><td><input type="checkbox" checked></td><td class="task-desc">Pass <code>session.language_code</code> through <code>process_message()</code> to <code>_build_messages()</code></td><td class="file-ref">app/services/triage.py</td><td class="dep">5.2</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section" id="section-6">
+  <div class="section-header">
+    <h2>6. Webhook Voice + Language Wiring</h2>
+    <span class="count" id="count-s6">0/5</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:40px"></th><th>Task</th><th>File</th><th>Depends On</th></tr></thead>
+    <tbody>
+      <tr data-task="6.1"><td><input type="checkbox" checked></td><td class="task-desc">After STT: detect language, store <code>language_code</code> + <code>input_modality="voice"</code> in session</td><td class="file-ref">app/routes/webhook.py</td><td class="dep">2.3, 3.1</td></tr>
+      <tr data-task="6.2"><td><input type="checkbox" checked></td><td class="task-desc">For text: detect language from message body, store <code>input_modality="text"</code></td><td class="file-ref">app/routes/webhook.py</td><td class="dep">2.1</td></tr>
+      <tr data-task="6.3"><td><input type="checkbox" checked></td><td class="task-desc">After triage: if voice input or <code>send_as_voice</code>, call TTS + upload + add to TwiML</td><td class="file-ref">app/routes/webhook.py</td><td class="dep">3.2, 4.1, 6.1</td></tr>
+      <tr data-task="6.4"><td><input type="checkbox" checked></td><td class="task-desc">Build TwiML with both text Body and Media URL for voice replies</td><td class="file-ref">app/routes/webhook.py</td><td class="dep">6.3</td></tr>
+      <tr data-task="6.5"><td><input type="checkbox" checked></td><td class="task-desc">Handle TTS failure: text-only reply if unsupported language, no error shown</td><td class="file-ref">app/routes/webhook.py</td><td class="dep">3.3, 6.3</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 7 -->
+<div class="section" id="section-7">
+  <div class="section-header">
+    <h2>7. Testing</h2>
+    <span class="count" id="count-s7">0/8</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:40px"></th><th>Task</th><th>File</th><th>Depends On</th></tr></thead>
+    <tbody>
+      <tr data-task="7.1"><td><input type="checkbox" checked></td><td class="task-desc">Test <code>detect_language_from_text()</code> for all 8 languages (script detection)</td><td class="file-ref">tests/test_language.py</td><td class="dep">2.1</td></tr>
+      <tr data-task="7.2"><td><input type="checkbox" checked></td><td class="task-desc">Test keyword fallback for romanized text</td><td class="file-ref">tests/test_language.py</td><td class="dep">2.2</td></tr>
+      <tr data-task="7.3"><td><input type="checkbox" checked></td><td class="task-desc">Test explicit language command parsing</td><td class="file-ref">tests/test_language.py</td><td class="dep">2.4</td></tr>
+      <tr data-task="7.4"><td><input type="checkbox" checked></td><td class="task-desc">Test fallback to English for unknown/empty input</td><td class="file-ref">tests/test_language.py</td><td class="dep">2.1</td></tr>
+      <tr data-task="7.5"><td><input type="checkbox" checked></td><td class="task-desc">Test STT returns tuple (text, language_code)</td><td class="file-ref">tests/test_voice.py</td><td class="dep">3.1</td></tr>
+      <tr data-task="7.6"><td><input type="checkbox" checked></td><td class="task-desc">Test TTS accepts language_code, handles unsupported languages</td><td class="file-ref">tests/test_voice.py</td><td class="dep">3.2, 3.3</td></tr>
+      <tr data-task="7.7"><td><input type="checkbox" checked></td><td class="task-desc">Test webhook audio flow end-to-end (mocked services)</td><td class="file-ref">tests/test_voice.py</td><td class="dep">6.1, 6.3</td></tr>
+      <tr data-task="7.8"><td><input type="checkbox" checked></td><td class="task-desc">Run full suite: <code>pytest tests/ -v</code> &mdash; all new + existing pass</td><td class="file-ref">tests/</td><td class="dep">7.1&ndash;7.7</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 8 -->
+<div class="section" id="section-8">
+  <div class="section-header">
+    <h2>8. Documentation & Final</h2>
+    <span class="count" id="count-s8">0/2</span>
+  </div>
+  <table>
+    <thead><tr><th style="width:40px"></th><th>Task</th><th>File</th><th>Depends On</th></tr></thead>
+    <tbody>
+      <tr data-task="8.1"><td><input type="checkbox" checked></td><td class="task-desc">Update <code>system_state.md</code>: voice + multilingual changes, what's next</td><td class="file-ref">system_state.md</td><td class="dep">7.8</td></tr>
+      <tr data-task="8.2"><td><input type="checkbox" checked></td><td class="task-desc">Update <code>CLAUDE.md</code>: add language.py to folder structure, document languages</td><td class="file-ref">CLAUDE.md</td><td class="dep">8.1</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const sections = {
+    s1: { el: 'count-s1', prefix: '1.', total: 4 },
+    s2: { el: 'count-s2', prefix: '2.', total: 5 },
+    s3: { el: 'count-s3', prefix: '3.', total: 4 },
+    s4: { el: 'count-s4', prefix: '4.', total: 3 },
+    s5: { el: 'count-s5', prefix: '5.', total: 3 },
+    s6: { el: 'count-s6', prefix: '6.', total: 5 },
+    s7: { el: 'count-s7', prefix: '7.', total: 8 },
+    s8: { el: 'count-s8', prefix: '8.', total: 2 }
+  };
+
+  const STORAGE_KEY = 'roadsos_voice_v2';
+  const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+  const totalCount = allCheckboxes.length;
+
+  document.getElementById('total-count').textContent = totalCount;
+
+  function updateCounts() {
+    const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+    document.getElementById('done-count').textContent = checked;
+    document.getElementById('remaining-count').textContent = totalCount - checked;
+    document.getElementById('progress-pct').textContent = Math.round((checked / totalCount) * 100) + '%';
+
+    for (const [key, sec] of Object.entries(sections)) {
+      const rows = document.querySelectorAll(`tr[data-task^="${sec.prefix}"]`);
+      const secChecked = [...rows].filter(r => r.querySelector('input').checked).length;
+      document.getElementById(sec.el).textContent = `${secChecked}/${sec.total}`;
+    }
+
+    const state = {};
+    allCheckboxes.forEach((cb, i) => { state[i] = cb.checked; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  // Restore saved state
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    const state = JSON.parse(saved);
+    allCheckboxes.forEach((cb, i) => {
+      if (state[i]) {
+        cb.checked = true;
+        cb.closest('tr').classList.add('checked');
+      }
+    });
+  }
+
+  allCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.closest('tr').classList.toggle('checked', cb.checked);
+      updateCounts();
+    });
+  });
+
+  updateCounts();
+</script>
+
+</body>
+</html>
