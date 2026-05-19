@@ -142,12 +142,22 @@ def _extract_location_info(
         session.location_lat = payload.latitude
         session.location_lng = payload.longitude
     elif payload.message_body and not session.location_text:
-        # Heuristic: if the message looks like a location description,
-        # store it. The triage model will confirm via STATE 2.
         text = payload.message_body.strip()
-        if len(text) > 5 and any(
-            kw in text.lower()
-            for kw in ["near", "road", "street", "signal", "junction", "highway", "km", "opp"]
+        lower = text.lower()
+
+        # Explicit "location: ..." prefix (user followed the prompt)
+        if "location" in lower and ":" in text:
+            loc_part = text.split(":", 1)[1].strip()
+            if loc_part:
+                session.location_text = loc_part
+        # Keyword heuristic: message looks like a location description
+        elif len(text) > 5 and any(
+            kw in lower
+            for kw in [
+                "near", "road", "street", "signal", "junction", "highway",
+                "km", "opp", "at ", "behind", "in front", "next to",
+                "beside", "opposite", "cross", "area", "nagar", "mandi",
+            ]
         ):
             session.location_text = text
 

@@ -125,19 +125,26 @@ async def whatsapp_webhook(
     session = await session_service.load_session(payload.sender)
 
     # Check for inactivity timeout (2+ minutes) — send follow-up
+    # Only fire when user hasn't sent an actual message (empty/repeated idle ping)
     now = datetime.now(timezone.utc)
     last = session.last_activity
     if last.tzinfo is None:
         last = last.replace(tzinfo=timezone.utc)
-    if now - last > timedelta(minutes=2) and session.conversation_history:
-        # Only follow up if we're mid-conversation (not resolved)
-        if session.triage_state not in (TriageState.RESOLUTION,):
-            followup = "Are you still there? \U0001f6a8"
-            await session_service.save_session(session)
-            return Response(
-                content=build_twiml_reply(followup),
-                media_type="application/xml",
-            )
+    is_idle_content = not payload.message_body or payload.message_body.lower() in (
+        "yes", "no", "ok", "hello", "hi", "hey",
+    )
+    if (
+        is_idle_content
+        and now - last > timedelta(minutes=2)
+        and session.conversation_history
+        and session.triage_state not in (TriageState.RESOLUTION,)
+    ):
+        followup = "Are you still there? \U0001f6a8"
+        await session_service.save_session(session)
+        return Response(
+            content=build_twiml_reply(followup),
+            media_type="application/xml",
+        )
 
     # Handle voice notes: transcribe before triage
     if payload.num_media > 0 and payload.media_url:
@@ -168,6 +175,7 @@ async def whatsapp_webhook(
         result = await triage.process_message(payload, session)
     except triage.TriageError as exc:
         logger.error("Triage failed: %s", exc)
+        await session_service.save_session(session)
         return Response(
             content=build_twiml_reply(
                 "Something went wrong. Please describe the situation and your location."
