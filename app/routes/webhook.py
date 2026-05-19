@@ -119,6 +119,7 @@ async def whatsapp_webhook(
     form = await request.form()
     form_dict = dict(form)
     payload = _parse_twilio_form(form_dict)
+    print(f"[WHATSAPP] {payload.sender}: {payload.message_body}", flush=True)
     logger.info("Incoming message from %s: %s", payload.sender, payload.message_body[:80])
 
     # Load or create session
